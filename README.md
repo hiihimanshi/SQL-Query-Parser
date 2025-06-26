@@ -2,7 +2,14 @@
 
 A lightweight Node.js SQL engine to parse and run SELECT, INSERT, UPDATE, and DELETE queries directly on CSV files. It supports advanced SQL features like JOINs, WHERE with logical operators, aggregation, and more—right from the command line or an interactive shell.
 
+# Flowchart
+
+![screenshot](assets/flowchart.jpg)
 ![screenshot](https://github.com/user-attachments/assets/c7d0501e-4403-436b-8595-e8a7b1d3009e)
+
+# Output
+
+![screenshot](assets/image.png)
 
 ## Features
 
@@ -15,7 +22,6 @@ Interactive shell with color-coded output
 CLI mode for one-off queries
 
 ## Installation
-
 1. Clone this repository:
    ```sh
    git clone <repo-url>
