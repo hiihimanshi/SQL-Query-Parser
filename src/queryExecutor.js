@@ -190,7 +190,7 @@ async function executeSELECTQuery(query) {
   }
   // Apply WHERE clause filtering after JOIN (or on the original data if no join)
   let filteredData =
-    whereClauses.length > 0
+    whereClauses
       ? data.filter((row) => evaluateWhereTree(row, whereClauses))
       : data;
   //map filter reduce

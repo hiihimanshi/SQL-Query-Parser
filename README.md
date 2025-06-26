@@ -1,17 +1,18 @@
-# SQL Query Parser & Engine
+# SQL Query Parser
 
-A Node.js-based SQL engine that can parse and execute SQL queries (SELECT, INSERT, UPDATE, DELETE) directly on CSV files. Supports WHERE clauses with AND/OR/grouping, JOINs, aggregation, and more—all from the command line or an interactive shell.
+A lightweight Node.js SQL engine to parse and run SELECT, INSERT, UPDATE, and DELETE queries directly on CSV files. It supports advanced SQL features like JOINs, WHERE with logical operators, aggregation, and more—right from the command line or an interactive shell.
 
 ![screenshot](https://github.com/user-attachments/assets/c7d0501e-4403-436b-8595-e8a7b1d3009e)
 
 ## Features
 
-- Run SQL queries (SELECT, INSERT, UPDATE, DELETE) on CSV files
-- WHERE clause with AND, OR, and parentheses (grouping)
-- JOIN support (INNER, LEFT, RIGHT)
-- Aggregation: COUNT, SUM, AVG, MIN, MAX
-- ORDER BY, GROUP BY, LIMIT, DISTINCT
-- Interactive shell and CLI with colored output and help
+Query CSV files using familiar SQL syntax
+Supports WHERE conditions with AND, OR, and grouping
+JOIN types: INNER, LEFT, RIGHT
+Aggregate functions: COUNT, SUM, AVG, MIN, MAX
+SQL clauses: ORDER BY, GROUP BY, LIMIT, DISTINCT
+Interactive shell with color-coded output
+CLI mode for one-off queries
 
 ## Installation
 
