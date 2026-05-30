@@ -1,0 +1,38 @@
+name: Code Analysis
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npx eslint src/ --format json --output-file eslint-report.json || true
+
+      - name: Display ESLint report
+        if: always()
+        run: cat eslint-report.json || echo "No linting issues"
+
+      - name: Check file size
+        run: |
+          SIZE=$(du -sh src | cut -f1)
+          echo "Source code size: $SIZE"
+
+      - name: Test coverage report
+        run: npm test -- --coverage --coverageReporters=text || true

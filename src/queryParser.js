@@ -1,10 +1,16 @@
+const { validators, sanitizers } = require("./security");
+const { ParseError } = require("./errors");
+
 /**
  * Parses a SELECT SQL query string into its components.
  * @param {string} query - The SQL SELECT query string.
  * @returns {Object} Parsed query components.
  */
 function parseSelectQuery(query) {
-  query = query.trim();
+  // Validate query for security threats
+  validators.query(query);
+  
+  query = sanitizers.query(query).trim();
 
   const limitRegex = /\sLIMIT\s(\d+)/i;
   const limitMatch = query.match(limitRegex);
@@ -53,11 +59,23 @@ function parseSelectQuery(query) {
   const selectMatch = selectPart.match(selectRegex);
 
   if (!selectMatch) {
-    throw new Error(
-      "Error executing query: Query parsing error: Invalid SELECT format",
+    throw new ParseError(
+      "Invalid SELECT format. Expected: SELECT fields FROM table",
+      query
     );
   }
   const [, fields, table] = selectMatch;
+
+  // Validate table name
+  validators.tableName(table.trim());
+  
+  // Validate field names
+  const fieldList = fields.split(",").map((f) => f.trim());
+  for (const field of fieldList) {
+    if (field !== "*") {
+      validators.fieldName(field);
+    }
+  }
 
   const joinInfo = parseJoinClause(queryWithoutWhere);
   const { joinType, joinTable, joinCondition } = joinInfo;
@@ -71,9 +89,9 @@ function parseSelectQuery(query) {
     /(\bCOUNT\b|\bAVG\b|\bSUM\b|\bMIN\b|\bMAX\b)\s*\(\s*(\*|\w+)\s*\)/i;
   const hasAggregateWithoutGroupBy =
     aggregateFunctionRegex.test(query) && !groupByFields;
-  // console.log(orderByFields);
+
   return {
-    fields: fields.split(",").map((field) => field.trim()),
+    fields: fieldList,
     table: table.trim(),
     whereClauses,
     joinType,
@@ -189,20 +207,38 @@ function parseJoinClause(query) {
  * @returns {Object} Parsed insert query components.
  */
 function parseInsertQuery(query) {
-  //
+  validators.query(query);
+  query = sanitizers.query(query);
+  
   const insertRegex = /INSERT INTO (\w+)\s\((.+)\)\sVALUES\s\((.+)\)/i;
   const match = query.match(insertRegex);
 
   if (!match) {
-    throw new Error("Invalid INSERT INTO syntax.");
+    throw new ParseError("Invalid INSERT INTO syntax. Expected: INSERT INTO table (col1, col2) VALUES (val1, val2)", query);
   }
 
   const [, table, columns, values] = match;
+  
+  // Validate table name
+  validators.tableName(table.trim());
+  
+  // Validate column names
+  const columnList = columns.split(",").map((col) => col.trim());
+  for (const col of columnList) {
+    validators.fieldName(col);
+  }
+  
+  // Validate values
+  const valueList = values.split(",").map((val) => sanitizers.value(val));
+  for (const val of valueList) {
+    validators.value(val);
+  }
+  
   return {
     type: "INSERT",
     table: table.trim(),
-    columns: columns.split(",").map((column) => column.trim()),
-    values: values.split(",").map((value) => value.trim()),
+    columns: columnList,
+    values: valueList,
   };
 }
 
@@ -212,14 +248,20 @@ function parseInsertQuery(query) {
  * @returns {Object} Parsed delete query components.
  */
 function parseDeleteQuery(query) {
-  //DELETE FROM courses WHERE course_id = '2'
+  validators.query(query);
+  query = sanitizers.query(query);
+  
   const deleteRegex = /DELETE FROM (\w+)( WHERE (.*))?/i;
   const match = query.match(deleteRegex);
   if (!match) {
-    throw new Error("Invalid DELETE syntax.");
+    throw new ParseError("Invalid DELETE syntax. Expected: DELETE FROM table [WHERE condition]", query);
   }
 
   const [, table, , whereString] = match;
+  
+  // Validate table name
+  validators.tableName(table.trim());
+  
   let whereClauses = [];
   if (whereString) {
     whereClauses = parseWhereClause(whereString);
@@ -238,23 +280,35 @@ function parseDeleteQuery(query) {
  * @returns {Object} Parsed update query components.
  */
 function parseUpdateQuery(query) {
+  validators.query(query);
+  query = sanitizers.query(query);
+  
   // Example: UPDATE table SET col1 = 'val1', col2 = 'val2' WHERE col3 = 'val3'
   const updateRegex = /UPDATE\s+(\w+)\s+SET\s+(.+?)(?:\s+WHERE\s+(.+))?$/i;
   const match = query.match(updateRegex);
   if (!match) {
-    throw new Error("Invalid UPDATE syntax.");
+    throw new ParseError("Invalid UPDATE syntax. Expected: UPDATE table SET col=val [WHERE condition]", query);
   }
+  
   const [, table, setString, whereString] = match;
-  // Parse set clauses
+  
+  // Validate table name
+  validators.tableName(table.trim());
+  
+  // Parse and validate set clauses
   const setClauses = setString.split(",").map((pair) => {
     const [column, value] = pair.split("=").map((s) => s.trim());
-    return { column, value: value.replace(/^'(.*)'$/, "$1") };
+    validators.fieldName(column);
+    validators.value(value);
+    return { column, value: sanitizers.value(value) };
   });
+  
   // Parse where clauses if present
   let whereClauses = [];
   if (whereString) {
     whereClauses = parseWhereClause(whereString);
   }
+  
   return {
     type: "UPDATE",
     table: table.trim(),
