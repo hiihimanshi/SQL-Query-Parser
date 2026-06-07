@@ -1,5 +1,5 @@
 {
-  "name": "stylusdb-sql",
+  "name": "sql-query-parser",
   "version": "0.1.6",
   "description": "A minimal SQL based DB based on CSV files. For educational purposes only.",
   "main": "./src/index.js",
@@ -39,10 +39,10 @@
     "server": "node ./src/server.js"
   },
   "bin": {
-    "stylusdb-cli": "node ./src/cli.js"
+    "sql-query-parser": "node ./src/cli.js"
   },
   "keywords": [],
-  "author": "Saqib Masood",
+  "author": "Himanshi",
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.29.0",
